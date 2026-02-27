@@ -9,7 +9,6 @@ import jakarta.persistence.Entity;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-// On indique à ArchUnit d'analyser tout notre code source
 @AnalyzeClasses(packages = "com.wikiaim.backend")
 public class ArchitectureTest {
 

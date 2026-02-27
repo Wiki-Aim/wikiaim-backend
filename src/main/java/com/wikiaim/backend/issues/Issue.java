@@ -31,7 +31,7 @@ public class Issue {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private IssueStatus status;
+    private IssueStatus status = IssueStatus.OPEN;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

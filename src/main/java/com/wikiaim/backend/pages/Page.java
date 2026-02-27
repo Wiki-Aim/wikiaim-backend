@@ -41,7 +41,7 @@ public class Page {
     private String currentContent;
 
     @Column(name = "is_published")
-    private boolean isPublished;
+    private Boolean isPublished;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

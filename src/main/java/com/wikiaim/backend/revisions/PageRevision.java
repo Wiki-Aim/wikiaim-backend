@@ -46,7 +46,7 @@ public class PageRevision {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private RevisionStatus status;
+    private RevisionStatus status = RevisionStatus.PENDING;
 
     @Column(name = "review_comment", columnDefinition = "TEXT")
     private String reviewComment;

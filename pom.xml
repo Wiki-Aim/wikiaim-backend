@@ -256,6 +256,7 @@
           <compilerArgs>
             <arg>-Amicronaut.processing.group=com.wikiaim.backend</arg>
             <arg>-Amicronaut.processing.module=wikiaim-backend</arg>
+            <arg>-Amicronaut.openapi.views.spec=swagger-ui.enabled=true</arg>
           </compilerArgs>
         </configuration>
       </plugin>
