@@ -2,11 +2,18 @@ package com.wikiaim.backend.revisions;
 
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
+import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.rules.SecurityRule;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.UUID;
 
 @Controller("/api/v1/revisions")
+@Secured(SecurityRule.IS_ANONYMOUS) // TODO : passer à IS_AUTHENTICATED quand le JWT sera en place
+@Tag(name = "Revisions", description = "Proposition et modération des révisions de pages")
 public class RevisionController {
 
     private final RevisionService revisionService;
@@ -16,18 +23,24 @@ public class RevisionController {
     }
 
     @Post
+    @Operation(summary = "Proposer une révision", description = "Crée une nouvelle proposition de modification pour une page existante")
+    @ApiResponse(responseCode = "201", description = "Révision créée")
     public HttpResponse<RevisionResponseDTO> proposeRevision(@Body ProposeRevisionDTO dto) {
         RevisionResponseDTO createdRevision = revisionService.proposeRevision(dto);
         return HttpResponse.created(createdRevision);
     }
 
     @Get("/pending")
+    @Operation(summary = "Lister les révisions en attente", description = "Retourne toutes les révisions au statut PENDING")
     public List<RevisionResponseDTO> listPending() {
         return revisionService.getPendingRevisions();
     }
 
     // TODO : extraire automatiquement du token JWT le reviewerId.
     @Post("/{id}/approve")
+    @Operation(summary = "Approuver une révision", description = "Valide une révision PENDING et met à jour le contenu de la page")
+    @ApiResponse(responseCode = "200", description = "Révision approuvée, page mise à jour")
+    @ApiResponse(responseCode = "400", description = "Révision introuvable, déjà traitée, ou modérateur introuvable")
     public HttpResponse<?> approveRevision(@PathVariable UUID id, @QueryValue UUID reviewerId) {
         try {
             revisionService.approveRevision(id, reviewerId);

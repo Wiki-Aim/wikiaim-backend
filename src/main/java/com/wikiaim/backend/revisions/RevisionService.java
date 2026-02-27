@@ -37,13 +37,14 @@ public class RevisionService {
         User author = userRepository.findById(dto.authorId())
                                     .orElseThrow(() -> new IllegalArgumentException("Auteur introuvable"));
 
-        PageRevision revision = new PageRevision();
-        revision.setPage(page);
-        revision.setAuthor(author);
-        revision.setProposedTitle(dto.proposedTitle());
-        revision.setProposedContent(dto.proposedContent());
-        revision.setCommitMessage(dto.commitMessage());
-        revision.setStatus(RevisionStatus.PENDING);
+        PageRevision revision = PageRevision.builder()
+            .page(page)
+            .author(author)
+            .proposedTitle(dto.proposedTitle())
+            .proposedContent(dto.proposedContent())
+            .commitMessage(dto.commitMessage())
+            .status(RevisionStatus.PENDING)
+            .build();
 
         PageRevision savedRevision = revisionRepository.save(revision);
         return revisionMapper.toDTO(savedRevision);
