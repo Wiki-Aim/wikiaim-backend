@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 @Controller("/api/v1/issues")
@@ -27,7 +29,7 @@ public class IssueController {
     @Post
     @Operation(summary = "Créer une issue", description = "Crée un nouveau signalement de problème ou une suggestion")
     @ApiResponse(responseCode = "201", description = "Issue créée")
-    public HttpResponse<IssueResponseDTO> createIssue(@Body CreateIssueDTO dto) {
+    public HttpResponse<IssueResponseDTO> createIssue(@Body @Valid CreateIssueDTO dto) {
         return HttpResponse.created(issueService.createIssue(dto));
     }
 

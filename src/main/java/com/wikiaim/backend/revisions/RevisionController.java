@@ -7,6 +7,7 @@ import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class RevisionController {
     @Post
     @Operation(summary = "Proposer une révision", description = "Crée une nouvelle proposition de modification pour une page existante")
     @ApiResponse(responseCode = "201", description = "Révision créée")
-    public HttpResponse<RevisionResponseDTO> proposeRevision(@Body ProposeRevisionDTO dto) {
+    public HttpResponse<RevisionResponseDTO> proposeRevision(@Body @Valid ProposeRevisionDTO dto) {
         RevisionResponseDTO createdRevision = revisionService.proposeRevision(dto);
         return HttpResponse.created(createdRevision);
     }
