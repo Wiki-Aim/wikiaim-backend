@@ -6,6 +6,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -72,6 +73,60 @@ class IssueControllerTest {
         assertEquals(issueId, response.body().id());
         assertEquals(IssueStatus.OPEN, response.body().status());
         verify(issueService).createIssue(any(CreateIssueDTO.class));
+    }
+
+    @Test
+    void createIssue_shouldReturn400WhenBodyIsEmpty() {
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/issues", Map.of()),
+                IssueResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(issueService, never()).createIssue(any());
+    }
+
+    @Test
+    void createIssue_shouldReturn400WhenTitleIsBlank() {
+        Map<String, Object> body = Map.of(
+            "title", "",
+            "description", "Description assez longue pour être valide",
+            "authorId", UUID.randomUUID()
+        );
+
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/issues", body),
+                IssueResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(issueService, never()).createIssue(any());
+    }
+
+    @Test
+    void createIssue_shouldReturn400WhenDescriptionTooShort() {
+        Map<String, Object> body = Map.of(
+            "title", "Bug valide",
+            "description", "Court",
+            "authorId", UUID.randomUUID()
+        );
+
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/issues", body),
+                IssueResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(issueService, never()).createIssue(any());
     }
 
     @Test

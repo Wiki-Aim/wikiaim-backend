@@ -160,6 +160,83 @@ class RevisionControllerTest {
     }
 
     @Test
+    void proposeRevision_shouldReturn400WhenBodyIsEmpty() {
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/revisions", Map.of()),
+                RevisionResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(revisionService, never()).proposeRevision(any());
+    }
+
+    @Test
+    void proposeRevision_shouldReturn400WhenTitleIsBlank() {
+        Map<String, Object> body = Map.of(
+            "pageId", UUID.randomUUID(),
+            "authorId", UUID.randomUUID(),
+            "proposedTitle", "",
+            "proposedContent", "{\"blocks\":[]}"
+        );
+
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/revisions", body),
+                RevisionResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(revisionService, never()).proposeRevision(any());
+    }
+
+    @Test
+    void proposeRevision_shouldReturn400WhenTitleTooShort() {
+        Map<String, Object> body = Map.of(
+            "pageId", UUID.randomUUID(),
+            "authorId", UUID.randomUUID(),
+            "proposedTitle", "AB",
+            "proposedContent", "{\"blocks\":[]}"
+        );
+
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/revisions", body),
+                RevisionResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(revisionService, never()).proposeRevision(any());
+    }
+
+    @Test
+    void proposeRevision_shouldReturn400WhenContentIsBlank() {
+        Map<String, Object> body = Map.of(
+            "pageId", UUID.randomUUID(),
+            "authorId", UUID.randomUUID(),
+            "proposedTitle", "Titre valide",
+            "proposedContent", ""
+        );
+
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.POST("/api/v1/revisions", body),
+                RevisionResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(revisionService, never()).proposeRevision(any());
+    }
+
+    @Test
     void approveRevision_shouldReturn400WhenRevisionNotPending() {
         // Arrange
         UUID revisionId = UUID.randomUUID();
