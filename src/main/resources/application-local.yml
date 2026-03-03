@@ -1,0 +1,21 @@
+micronaut:
+  security:
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: dev-secret-key-do-not-use-in-production-min-32-chars
+
+datasources:
+  default:
+    url: jdbc:postgresql://localhost:5432/wikiaim
+    username: wikiaim
+    password: wikipass
+
+jpa:
+  default:
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true

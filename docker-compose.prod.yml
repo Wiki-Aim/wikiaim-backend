@@ -1,0 +1,50 @@
+services:
+  app:
+    image: ghcr.io/eryors/wikiaim-backend:latest
+    container_name: wikiaim-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: wikiaim
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - traefik-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wikiaim-api.rule=Host(`${WIKIAIM_DOMAIN}`)"
+      - "traefik.http.routers.wikiaim-api.entrypoints=websecure"
+      - "traefik.http.routers.wikiaim-api.tls.certresolver=myresolver"
+      - "traefik.http.services.wikiaim-api.loadbalancer.server.port=8080"
+
+  postgres:
+    image: postgres:17
+    container_name: wikiaim-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: wikiaim
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  internal:
+  traefik-net:
+    external: true

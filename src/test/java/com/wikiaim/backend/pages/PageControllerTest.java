@@ -1,5 +1,6 @@
 package com.wikiaim.backend.pages;
 
+import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @MicronautTest(environments = "test")
+@Property(name = "micronaut.security.enabled", value = "false")
 class PageControllerTest {
 
     @Inject

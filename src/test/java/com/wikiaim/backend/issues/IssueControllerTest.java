@@ -1,5 +1,6 @@
 package com.wikiaim.backend.issues;
 
+import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @MicronautTest(environments = "test")
+@Property(name = "micronaut.security.enabled", value = "false")
 class IssueControllerTest {
 
     @Inject

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller("/api/v1/revisions")
-@Secured(SecurityRule.IS_ANONYMOUS) // TODO : passer à IS_AUTHENTICATED quand le JWT sera en place
+@Secured(SecurityRule.IS_AUTHENTICATED)
 @Tag(name = "Revisions", description = "Proposition et modération des révisions de pages")
 public class RevisionController {
 

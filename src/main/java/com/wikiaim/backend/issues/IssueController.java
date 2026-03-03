@@ -16,7 +16,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @Controller("/api/v1/issues")
-@Secured(SecurityRule.IS_ANONYMOUS) // TODO : passer à IS_AUTHENTICATED quand le JWT sera en place
 @Tag(name = "Issues", description = "Signalement de problèmes et suggestions")
 public class IssueController {
 
@@ -27,6 +26,7 @@ public class IssueController {
     }
 
     @Post
+    @Secured(SecurityRule.IS_AUTHENTICATED)
     @Operation(summary = "Créer une issue", description = "Crée un nouveau signalement de problème ou une suggestion")
     @ApiResponse(responseCode = "201", description = "Issue créée")
     public HttpResponse<IssueResponseDTO> createIssue(@Body @Valid CreateIssueDTO dto) {
@@ -34,6 +34,7 @@ public class IssueController {
     }
 
     @Get("/open")
+    @Secured(SecurityRule.IS_ANONYMOUS)
     @Operation(summary = "Lister les issues ouvertes", description = "Retourne toutes les issues au statut OPEN")
     public List<IssueResponseDTO> listOpenIssues() {
         return issueService.getOpenIssues();

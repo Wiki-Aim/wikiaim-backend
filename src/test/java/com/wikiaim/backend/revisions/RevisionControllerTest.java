@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @MicronautTest(environments = "test")
-@Property(name = "micronaut.security.enabled", value = "false") // TODO : RevisionController n'a pas encore de @Secured
+@Property(name = "micronaut.security.enabled", value = "false")
 class RevisionControllerTest {
 
     @Inject

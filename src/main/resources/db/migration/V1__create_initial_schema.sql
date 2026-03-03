@@ -1,12 +1,12 @@
 CREATE TABLE users (
-                       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                       id UUID PRIMARY KEY,
                        username VARCHAR(50) NOT NULL UNIQUE,
                        email VARCHAR(255) NOT NULL UNIQUE,
-                       password_hash VARCHAR(255) NOT NULL,
-                       role VARCHAR(20) NOT NULL DEFAULT 'USER', -- USER, CONTRIBUTOR, MODERATOR, ADMIN
+                       discord_id VARCHAR(255) UNIQUE,
+                       avatar_url VARCHAR(255),
+                       role VARCHAR(20) NOT NULL,
                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-
 CREATE TABLE categories (
                             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                             name VARCHAR(100) NOT NULL,

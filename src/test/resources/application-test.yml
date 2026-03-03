@@ -1,9 +1,18 @@
+micronaut:
+  security:
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: test-secret-key-do-not-use-in-production-min-32-chars
+
 datasources:
   default:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:wikiaim}
+    url: jdbc:postgresql://localhost:5432/wikiaim
     driverClassName: org.postgresql.Driver
-    username: ${DB_USERNAME:wikiaim}
-    password: ${DB_PASSWORD:wikipass}
+    username: wikiaim
+    password: wikipass
 
 jpa:
   default:
@@ -23,4 +32,3 @@ test-resources:
   containers:
     postgres:
       enabled: false
-
