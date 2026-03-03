@@ -42,12 +42,8 @@ public class RevisionController {
     @Operation(summary = "Approuver une révision", description = "Valide une révision PENDING et met à jour le contenu de la page")
     @ApiResponse(responseCode = "200", description = "Révision approuvée, page mise à jour")
     @ApiResponse(responseCode = "400", description = "Révision introuvable, déjà traitée, ou modérateur introuvable")
-    public HttpResponse<?> approveRevision(@PathVariable UUID id, @QueryValue UUID reviewerId) {
-        try {
-            revisionService.approveRevision(id, reviewerId);
-            return HttpResponse.ok();
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return HttpResponse.badRequest(e.getMessage());
-        }
+    public HttpResponse<Void> approveRevision(@PathVariable UUID id, @QueryValue UUID reviewerId) {
+        revisionService.approveRevision(id, reviewerId);
+        return HttpResponse.ok();
     }
 }

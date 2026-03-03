@@ -1,4 +1,10 @@
 micronaut:
+  server:
+    cors:
+      configurations:
+        nextjs-frontend:
+          allowed-origins:
+            - http://localhost:3000
   security:
     token:
       jwt:
