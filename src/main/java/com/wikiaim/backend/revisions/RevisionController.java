@@ -4,6 +4,7 @@ import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import io.micronaut.validation.Validated;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Controller("/api/v1/revisions")
 @Secured(SecurityRule.IS_AUTHENTICATED)
+@Validated
 @Tag(name = "Revisions", description = "Proposition et modération des révisions de pages")
 public class RevisionController {
 

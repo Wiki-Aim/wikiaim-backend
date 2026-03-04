@@ -10,10 +10,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import io.micronaut.validation.Validated;
+
 import java.util.List;
 
 @Controller("/api/v1/pages")
 @Secured(SecurityRule.IS_ANONYMOUS)
+@Validated
 @Tag(name = "Pages", description = "Gestion des pages du wiki")
 public class PageController {
 

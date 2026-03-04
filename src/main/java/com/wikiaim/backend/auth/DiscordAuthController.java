@@ -6,6 +6,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import io.micronaut.validation.Validated;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 
 @Controller("/api/v1/auth")
 @Secured(SecurityRule.IS_ANONYMOUS)
+@Validated
 @Tag(name = "Authentication", description = "Authentification via Discord OAuth")
 public class DiscordAuthController {
 

@@ -11,11 +11,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import io.micronaut.validation.Validated;
 import jakarta.validation.Valid;
 
 import java.util.List;
 
 @Controller("/api/v1/issues")
+@Validated
 @Tag(name = "Issues", description = "Signalement de problèmes et suggestions")
 public class IssueController {
 
