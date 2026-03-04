@@ -2,6 +2,7 @@ package com.wikiaim.backend.pages;
 
 import com.wikiaim.backend.categories.Category;
 import com.wikiaim.backend.users.User;
+import io.micronaut.core.annotation.Introspected;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "pages")
+@Introspected
 @Getter
 @Setter
 @NoArgsConstructor

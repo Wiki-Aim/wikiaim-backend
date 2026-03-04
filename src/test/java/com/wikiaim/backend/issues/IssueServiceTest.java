@@ -2,12 +2,13 @@ package com.wikiaim.backend.issues;
 
 import com.wikiaim.backend.users.User;
 import com.wikiaim.backend.users.UserRepository;
+import io.micronaut.context.annotation.Property;
+import io.micronaut.test.annotation.MockBean;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,22 +18,32 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@MicronautTest(environments = "test", startApplication = false)
+@Property(name = "micronaut.security.enabled", value = "false")
 class IssueServiceTest {
 
-    @Mock
-    private IssueRepository issueRepository;
+    @MockBean(IssueRepository.class)
+    IssueRepository issueRepository() {
+        return mock(IssueRepository.class);
+    }
 
-    @Mock
-    private UserRepository userRepository;
+    @MockBean(UserRepository.class)
+    UserRepository userRepository() {
+        return mock(UserRepository.class);
+    }
 
-    private final IssueMapper issueMapper = new IssueMapper();
+    @Inject
+    IssueRepository issueRepository;
 
-    private IssueService issueService;
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    IssueService issueService;
 
     @BeforeEach
     void setUp() {
-        issueService = new IssueService(issueRepository, userRepository, issueMapper);
+        reset(issueRepository, userRepository);
     }
 
     @Test

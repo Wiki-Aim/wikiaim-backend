@@ -1,18 +1,13 @@
 package com.wikiaim.backend.issues;
 
+import io.micronaut.context.annotation.Mapper;
+import io.micronaut.context.annotation.Mapper.Mapping;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class IssueMapper {
-    public IssueResponseDTO toDTO(Issue issue) {
-        if (issue == null) return null;
-        return new IssueResponseDTO(
-            issue.getId(),
-            issue.getTitle(),
-            issue.getDescription(),
-            issue.getStatus(),
-            issue.getAuthor() != null ? issue.getAuthor().getId() : null,
-            issue.getCreatedAt()
-        );
-    }
+public interface IssueMapper {
+
+    @Mapping(to = "authorId", from = "#{issue.author.id}", condition = "#{issue.author != null}")
+    @Mapper
+    IssueResponseDTO toDTO(Issue issue);
 }

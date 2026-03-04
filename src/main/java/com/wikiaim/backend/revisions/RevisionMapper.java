@@ -1,21 +1,13 @@
 package com.wikiaim.backend.revisions;
 
+import io.micronaut.context.annotation.Mapper;
+import io.micronaut.context.annotation.Mapper.Mapping;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class RevisionMapper {
+public interface RevisionMapper {
 
-    public RevisionResponseDTO toDTO(PageRevision revision) {
-        if (revision == null) {
-            return null;
-        }
-        return new RevisionResponseDTO(
-            revision.getId(),
-            revision.getPage().getId(),
-            revision.getProposedTitle(),
-            revision.getCommitMessage(),
-            revision.getStatus(),
-            revision.getCreatedAt()
-        );
-    }
+    @Mapping(to = "pageId", from = "#{pageRevision.page.id}")
+    @Mapper
+    RevisionResponseDTO toDTO(PageRevision pageRevision);
 }

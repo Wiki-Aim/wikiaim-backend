@@ -1,22 +1,13 @@
 package com.wikiaim.backend.pages;
 
+import io.micronaut.context.annotation.Mapper;
+import io.micronaut.context.annotation.Mapper.Mapping;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class PageMapper {
+public interface PageMapper {
 
-    public PageResponseDTO toDTO(Page page) {
-        if (page == null) {
-            return null;
-        }
-
-        return new PageResponseDTO(
-            page.getId(),
-            page.getTitle(),
-            page.getSlug(),
-            page.getCurrentContent(),
-            page.getAuthor() != null ? page.getAuthor().getId() : null,
-            page.getUpdatedAt()
-        );
-    }
+    @Mapping(to = "authorId", from = "#{page.author.id}", condition = "#{page.author != null}")
+    @Mapper
+    PageResponseDTO toDTO(Page page);
 }

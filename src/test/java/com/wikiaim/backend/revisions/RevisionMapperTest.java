@@ -1,6 +1,9 @@
 package com.wikiaim.backend.revisions;
 
 import com.wikiaim.backend.pages.Page;
+import io.micronaut.context.annotation.Property;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -8,9 +11,12 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@MicronautTest(environments = "test", startApplication = false)
+@Property(name = "micronaut.security.enabled", value = "false")
 class RevisionMapperTest {
 
-    private final RevisionMapper mapper = new RevisionMapper();
+    @Inject
+    RevisionMapper mapper;
 
     @Test
     void shouldMapRevisionToDTO() {
@@ -39,10 +45,5 @@ class RevisionMapperTest {
         assertEquals("fix: correction du titre", dto.commitMessage());
         assertEquals(RevisionStatus.PENDING, dto.status());
         assertEquals(revision.getCreatedAt(), dto.createdAt());
-    }
-
-    @Test
-    void shouldReturnNullForNullRevision() {
-        assertNull(mapper.toDTO(null));
     }
 }

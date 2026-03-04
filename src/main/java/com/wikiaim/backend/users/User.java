@@ -1,5 +1,6 @@
 package com.wikiaim.backend.users;
 
+import io.micronaut.core.annotation.Introspected;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -7,6 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Introspected
 @Getter
 @Setter
 @NoArgsConstructor

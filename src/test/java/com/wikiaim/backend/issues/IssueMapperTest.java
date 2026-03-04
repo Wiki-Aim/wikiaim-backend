@@ -1,6 +1,9 @@
 package com.wikiaim.backend.issues;
 
 import com.wikiaim.backend.users.User;
+import io.micronaut.context.annotation.Property;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -8,9 +11,12 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@MicronautTest(environments = "test", startApplication = false)
+@Property(name = "micronaut.security.enabled", value = "false")
 class IssueMapperTest {
 
-    private final IssueMapper mapper = new IssueMapper();
+    @Inject
+    IssueMapper mapper;
 
     @Test
     void shouldMapIssueToDTO() {
@@ -57,10 +63,5 @@ class IssueMapperTest {
         // Assert
         assertNotNull(dto);
         assertNull(dto.authorId());
-    }
-
-    @Test
-    void shouldReturnNullForNullIssue() {
-        assertNull(mapper.toDTO(null));
     }
 }

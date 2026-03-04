@@ -1,6 +1,7 @@
 package com.wikiaim.backend.issues;
 
 import com.wikiaim.backend.users.User;
+import io.micronaut.core.annotation.Introspected;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -8,6 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "issues")
+@Introspected
 @Getter
 @Setter
 @NoArgsConstructor

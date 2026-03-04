@@ -4,12 +4,13 @@ import com.wikiaim.backend.pages.Page;
 import com.wikiaim.backend.pages.PageRepository;
 import com.wikiaim.backend.users.User;
 import com.wikiaim.backend.users.UserRepository;
+import io.micronaut.context.annotation.Property;
+import io.micronaut.test.annotation.MockBean;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,25 +20,40 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@MicronautTest(environments = "test", startApplication = false)
+@Property(name = "micronaut.security.enabled", value = "false")
 class RevisionServiceTest {
 
-    @Mock
-    private PageRevisionRepository revisionRepository;
+    @MockBean(PageRevisionRepository.class)
+    PageRevisionRepository revisionRepository() {
+        return mock(PageRevisionRepository.class);
+    }
 
-    @Mock
-    private PageRepository pageRepository;
+    @MockBean(PageRepository.class)
+    PageRepository pageRepository() {
+        return mock(PageRepository.class);
+    }
 
-    @Mock
-    private UserRepository userRepository;
+    @MockBean(UserRepository.class)
+    UserRepository userRepository() {
+        return mock(UserRepository.class);
+    }
 
-    private final RevisionMapper revisionMapper = new RevisionMapper();
+    @Inject
+    PageRevisionRepository revisionRepository;
 
-    private RevisionService revisionService;
+    @Inject
+    PageRepository pageRepository;
+
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    RevisionService revisionService;
 
     @BeforeEach
     void setUp() {
-        revisionService = new RevisionService(revisionRepository, pageRepository, userRepository, revisionMapper);
+        reset(revisionRepository, pageRepository, userRepository);
     }
 
     @Test
@@ -181,7 +197,6 @@ class RevisionServiceTest {
         assertNotNull(revision.getReviewedAt());
         verify(revisionRepository).update(revision);
 
-        // Assert
         assertEquals("Nouveau titre", page.getTitle());
         assertEquals("{\"new\":true}", page.getCurrentContent());
         verify(pageRepository).update(page);
