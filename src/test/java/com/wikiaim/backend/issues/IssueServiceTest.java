@@ -131,4 +131,75 @@ class IssueServiceTest {
         // Assert
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void updateStatus_shouldUpdateAndReturn() {
+        // Arrange
+        UUID issueId = UUID.randomUUID();
+        User author = User.builder().id(UUID.randomUUID()).build();
+
+        Issue issue = Issue.builder()
+            .id(issueId)
+            .title("Bug")
+            .description("Description")
+            .status(IssueStatus.OPEN)
+            .author(author)
+            .build();
+
+        when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+        when(issueRepository.update(any(Issue.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UpdateIssueStatusDTO dto = new UpdateIssueStatusDTO("IN_PROGRESS");
+
+        // Act
+        IssueResponseDTO result = issueService.updateStatus(issueId, dto);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(IssueStatus.IN_PROGRESS, result.status());
+        verify(issueRepository).update(any(Issue.class));
+    }
+
+    @Test
+    void updateStatus_shouldThrowWhenIssueNotFound() {
+        // Arrange
+        UUID issueId = UUID.randomUUID();
+        when(issueRepository.findById(issueId)).thenReturn(Optional.empty());
+
+        UpdateIssueStatusDTO dto = new UpdateIssueStatusDTO("CLOSED");
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> issueService.updateStatus(issueId, dto)
+        );
+
+        assertEquals("Issue introuvable", exception.getMessage());
+        verify(issueRepository, never()).update(any());
+    }
+
+    @Test
+    void updateStatus_shouldThrowWhenSameStatus() {
+        // Arrange
+        UUID issueId = UUID.randomUUID();
+        Issue issue = Issue.builder()
+            .id(issueId)
+            .title("Bug")
+            .description("Description")
+            .status(IssueStatus.OPEN)
+            .build();
+
+        when(issueRepository.findById(issueId)).thenReturn(Optional.of(issue));
+
+        UpdateIssueStatusDTO dto = new UpdateIssueStatusDTO("OPEN");
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> issueService.updateStatus(issueId, dto)
+        );
+
+        assertEquals("L'issue est déjà au statut OPEN", exception.getMessage());
+        verify(issueRepository, never()).update(any());
+    }
 }

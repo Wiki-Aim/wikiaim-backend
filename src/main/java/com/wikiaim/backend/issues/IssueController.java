@@ -1,10 +1,7 @@
 package com.wikiaim.backend.issues;
 
 import io.micronaut.http.HttpResponse;
-import io.micronaut.http.annotation.Body;
-import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Get;
-import io.micronaut.http.annotation.Post;
+import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +12,7 @@ import io.micronaut.validation.Validated;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller("/api/v1/issues")
 @Validated
@@ -40,5 +38,15 @@ public class IssueController {
     @Operation(summary = "Lister les issues ouvertes", description = "Retourne toutes les issues au statut OPEN")
     public List<IssueResponseDTO> listOpenIssues() {
         return issueService.getOpenIssues();
+    }
+
+    @Patch("/{id}/status")
+    @Secured(SecurityRule.IS_AUTHENTICATED)
+    @Operation(summary = "Changer le statut d'une issue", description = "Met à jour le statut d'une issue existante")
+    @ApiResponse(responseCode = "200", description = "Statut mis à jour")
+    @ApiResponse(responseCode = "400", description = "Statut invalide ou identique au statut actuel")
+    @ApiResponse(responseCode = "404", description = "Issue introuvable")
+    public HttpResponse<IssueResponseDTO> updateStatus(@PathVariable UUID id, @Body @Valid UpdateIssueStatusDTO dto) {
+        return HttpResponse.ok(issueService.updateStatus(id, dto));
     }
 }

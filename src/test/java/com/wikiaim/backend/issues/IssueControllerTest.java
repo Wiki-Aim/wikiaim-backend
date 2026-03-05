@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @MicronautTest(environments = "test")
@@ -168,5 +169,60 @@ class IssueControllerTest {
         assertEquals(HttpStatus.OK, response.getStatus());
         assertNotNull(response.body());
         assertTrue(response.body().isEmpty());
+    }
+
+    @Test
+    void updateStatus_shouldReturn200() {
+        // Arrange
+        UUID issueId = UUID.randomUUID();
+        IssueResponseDTO responseDTO = new IssueResponseDTO(
+            issueId, "Bug", "Description", IssueStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now()
+        );
+
+        when(issueService.updateStatus(eq(issueId), any(UpdateIssueStatusDTO.class))).thenReturn(responseDTO);
+
+        Map<String, Object> body = Map.of("status", "IN_PROGRESS");
+
+        // Act
+        HttpResponse<IssueResponseDTO> response = client.toBlocking().exchange(
+            HttpRequest.PATCH("/api/v1/issues/" + issueId + "/status", body),
+            IssueResponseDTO.class
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatus());
+        assertNotNull(response.body());
+        assertEquals(IssueStatus.IN_PROGRESS, response.body().status());
+        verify(issueService).updateStatus(eq(issueId), any(UpdateIssueStatusDTO.class));
+    }
+
+    @Test
+    void updateStatus_shouldReturn400WhenStatusInvalid() {
+        Map<String, Object> body = Map.of("status", "TOTO");
+
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", body),
+                IssueResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(issueService, never()).updateStatus(any(), any());
+    }
+
+    @Test
+    void updateStatus_shouldReturn400WhenBodyEmpty() {
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", Map.of()),
+                IssueResponseDTO.class
+            )
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        verify(issueService, never()).updateStatus(any(), any());
     }
 }

@@ -6,6 +6,7 @@ import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Singleton
 public class IssueService {
@@ -40,5 +41,20 @@ public class IssueService {
                               .stream()
                               .map(issueMapper::toDTO)
                               .toList();
+    }
+
+    @Transactional
+    public IssueResponseDTO updateStatus(UUID id, UpdateIssueStatusDTO dto) {
+        Issue issue = issueRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Issue introuvable"));
+
+        IssueStatus newStatus = IssueStatus.valueOf(dto.status());
+
+        if (issue.getStatus() == newStatus) {
+            throw new IllegalStateException("L'issue est déjà au statut " + newStatus);
+        }
+
+        issue.setStatus(newStatus);
+        return issueMapper.toDTO(issueRepository.update(issue));
     }
 }
