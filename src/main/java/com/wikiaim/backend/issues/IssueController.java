@@ -10,20 +10,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import io.micronaut.validation.Validated;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
 
 @Controller("/api/v1/issues")
 @Validated
+@RequiredArgsConstructor
 @Tag(name = "Issues", description = "Signalement de problèmes et suggestions")
 public class IssueController {
 
     private final IssueService issueService;
-
-    public IssueController(IssueService issueService) {
-        this.issueService = issueService;
-    }
 
     @Post
     @Secured(SecurityRule.IS_AUTHENTICATED)

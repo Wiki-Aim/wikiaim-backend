@@ -44,7 +44,7 @@ class DiscordAuthControllerTest {
     @Test
     void loginWithDiscord_shouldReturn200() {
         // Arrange
-        AuthResponseDTO responseDTO = new AuthResponseDTO("jwt_token", "Bearer", "USER");
+        AuthResponseDTO responseDTO = new AuthResponseDTO("jwt_token", "user-id-123", "USER");
         when(discordAuthService.loginWithDiscord(any(DiscordTokenRequest.class))).thenReturn(responseDTO);
 
         // Act
@@ -56,8 +56,8 @@ class DiscordAuthControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatus());
         assertNotNull(response.body());
-        assertEquals("jwt_token", response.body().accessToken());
-        assertEquals("Bearer", response.body().tokenType());
+        assertEquals("jwt_token", response.body().backendToken());
+        assertEquals("user-id-123", response.body().userId());
         assertEquals("USER", response.body().role());
         verify(discordAuthService).loginWithDiscord(any(DiscordTokenRequest.class));
     }

@@ -1,19 +1,17 @@
 package com.wikiaim.backend.pages;
 
 import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
 
 @Singleton
+@RequiredArgsConstructor
 public class PageService {
 
     private final PageRepository pageRepository;
     private final PageMapper pageMapper;
-
-    public PageService(PageRepository pageRepository, PageMapper pageMapper) {
-        this.pageRepository = pageRepository;
-        this.pageMapper = pageMapper;
-    }
 
     public List<PageResponseDTO> getAllPublishedPages() {
         return pageRepository.findByIsPublishedTrue()

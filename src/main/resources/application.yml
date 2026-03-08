@@ -29,7 +29,8 @@ micronaut:
   http:
     services:
       discord:
-        url: https://discord.com/api/v10
+        url: https://discord.com
+        read-timeout: 15s
   security:
     authentication: bearer
     token:

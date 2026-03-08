@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,14 +17,11 @@ import java.util.UUID;
 @Controller("/api/v1/revisions")
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Validated
+@RequiredArgsConstructor
 @Tag(name = "Revisions", description = "Proposition et modération des révisions de pages")
 public class RevisionController {
 
     private final RevisionService revisionService;
-
-    public RevisionController(RevisionService revisionService) {
-        this.revisionService = revisionService;
-    }
 
     @Post
     @Operation(summary = "Proposer une révision", description = "Crée une nouvelle proposition de modification pour une page existante")
@@ -37,6 +35,14 @@ public class RevisionController {
     @Operation(summary = "Lister les révisions en attente", description = "Retourne toutes les révisions au statut PENDING")
     public List<RevisionResponseDTO> listPending() {
         return revisionService.getPendingRevisions();
+    }
+
+    @Get("/{id}/diff")
+    @Operation(summary = "Voir le diff d'une révision", description = "Calcule et retourne le diff entre le contenu actuel de la page et le contenu proposé par la révision")
+    @ApiResponse(responseCode = "200", description = "Diff calculé")
+    @ApiResponse(responseCode = "400", description = "Révision introuvable")
+    public RevisionDiffDTO getRevisionDiff(@PathVariable UUID id) {
+        return revisionService.getRevisionDiff(id);
     }
 
     // TODO : extraire automatiquement du token JWT le reviewerId.

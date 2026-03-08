@@ -256,4 +256,58 @@ class RevisionControllerTest {
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
     }
+
+    @Test
+    void getDiff_shouldReturn200() {
+        // Arrange
+        UUID revisionId = UUID.randomUUID();
+        UUID pageId = UUID.randomUUID();
+
+        RevisionDiffDTO diffDTO = new RevisionDiffDTO(
+            revisionId, pageId, "Titre actuel", "Titre modifié", true,
+            List.of(
+                new DiffLineDTO(DiffType.EQUAL, "Ligne inchangée"),
+                new DiffLineDTO(DiffType.DELETE, "Ligne supprimée"),
+                new DiffLineDTO(DiffType.INSERT, "Ligne ajoutée")
+            ),
+            "fix: correction", RevisionStatus.PENDING, Instant.now()
+        );
+
+        when(revisionService.getRevisionDiff(revisionId)).thenReturn(diffDTO);
+
+        // Act
+        HttpResponse<RevisionDiffDTO> response = client.toBlocking().exchange(
+            HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff"),
+            RevisionDiffDTO.class
+        );
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatus());
+        assertNotNull(response.body());
+        assertEquals(revisionId, response.body().revisionId());
+        assertTrue(response.body().titleChanged());
+        assertEquals(3, response.body().contentDiff().size());
+        verify(revisionService).getRevisionDiff(revisionId);
+    }
+
+    @Test
+    void getDiff_shouldReturn400WhenRevisionNotFound() {
+        // Arrange
+        UUID revisionId = UUID.randomUUID();
+
+        when(revisionService.getRevisionDiff(revisionId))
+            .thenThrow(new IllegalArgumentException("Révision introuvable"));
+
+        // Act
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff"),
+                RevisionDiffDTO.class
+            )
+        );
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    }
 }

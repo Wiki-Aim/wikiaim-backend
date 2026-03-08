@@ -6,14 +6,13 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Error;
 import io.micronaut.http.exceptions.HttpStatusException;
+import io.micronaut.security.authentication.AuthorizationException;
 import jakarta.validation.ConstraintViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 public class GlobalExceptionHandler {
-
-    private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Error(global = true, exception = IllegalArgumentException.class)
     public HttpResponse<ApiErrorDTO> handleIllegalArgument(HttpRequest<?> request, IllegalArgumentException e) {
@@ -41,6 +40,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @Error(global = true, exception = AuthorizationException.class)
+    public HttpResponse<ApiErrorDTO> handleAuthorization(HttpRequest<?> request, AuthorizationException e) {
+        if (e.isForbidden()) {
+            return HttpResponse.status(HttpStatus.FORBIDDEN).body(
+                new ApiErrorDTO(403, "Forbidden", "Accès refusé")
+            );
+        }
+        return HttpResponse.status(HttpStatus.UNAUTHORIZED).body(
+            new ApiErrorDTO(401, "Unauthorized", "Authentification requise ou token expiré")
+        );
+    }
+
     @Error(global = true, exception = HttpStatusException.class)
     public HttpResponse<ApiErrorDTO> handleHttpStatus(HttpRequest<?> request, HttpStatusException e) {
         HttpStatus status = e.getStatus();
@@ -51,7 +62,7 @@ public class GlobalExceptionHandler {
 
     @Error(global = true, exception = Exception.class)
     public HttpResponse<ApiErrorDTO> handleGeneric(HttpRequest<?> request, Exception e) {
-        LOG.error("Unexpected error on {} {}", request.getMethod(), request.getPath(), e);
+        log.error("Unexpected error on {} {}", request.getMethod(), request.getPath(), e);
         return HttpResponse.serverError(
             new ApiErrorDTO(500, "Internal Server Error", "Une erreur interne est survenue")
         );

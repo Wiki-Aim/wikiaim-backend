@@ -1,11 +1,13 @@
 package com.wikiaim.backend.categories;
 
+import io.micronaut.core.annotation.Introspected;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
 
 @Entity
 @Table(name = "categories")
+@Introspected
 @Getter
 @Setter
 @NoArgsConstructor

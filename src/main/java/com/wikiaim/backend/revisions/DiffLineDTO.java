@@ -1,12 +1,11 @@
-package com.wikiaim.backend.core;
+package com.wikiaim.backend.revisions;
 
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 @Introspected
-public record ApiErrorDTO(
-    int status,
-    String error,
-    String message
+public record DiffLineDTO(
+    DiffType type,
+    String content
 ) {}

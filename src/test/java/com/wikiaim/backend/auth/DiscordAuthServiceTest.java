@@ -70,8 +70,8 @@ class DiscordAuthServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("jwt_token", result.accessToken());
-        assertEquals("Bearer", result.tokenType());
+        assertEquals("jwt_token", result.backendToken());
+        assertEquals(existingUser.getId().toString(), result.userId());
         assertEquals("USER", result.role());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -98,7 +98,8 @@ class DiscordAuthServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("jwt_token", result.accessToken());
+        assertEquals("jwt_token", result.backendToken());
+        assertEquals(existingUser.getId().toString(), result.userId());
         verify(userRepository, never()).save(any());
     }
 

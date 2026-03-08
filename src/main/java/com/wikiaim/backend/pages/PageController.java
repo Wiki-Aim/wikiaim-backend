@@ -11,20 +11,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import io.micronaut.validation.Validated;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 @Controller("/api/v1/pages")
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Validated
+@RequiredArgsConstructor
 @Tag(name = "Pages", description = "Gestion des pages du wiki")
 public class PageController {
 
     private final PageService pageService;
-
-    public PageController(PageService pageService) {
-        this.pageService = pageService;
-    }
 
     @Get
     @Operation(summary = "Lister les pages publiées", description = "Retourne toutes les pages dont le statut est publié")

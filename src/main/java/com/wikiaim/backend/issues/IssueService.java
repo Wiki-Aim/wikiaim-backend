@@ -4,22 +4,18 @@ import com.wikiaim.backend.users.User;
 import com.wikiaim.backend.users.UserRepository;
 import jakarta.inject.Singleton;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
 
 @Singleton
+@RequiredArgsConstructor
 public class IssueService {
 
     private final IssueRepository issueRepository;
     private final UserRepository userRepository;
     private final IssueMapper issueMapper;
-
-    public IssueService(IssueRepository issueRepository, UserRepository userRepository, IssueMapper issueMapper) {
-        this.issueRepository = issueRepository;
-        this.userRepository = userRepository;
-        this.issueMapper = issueMapper;
-    }
 
     @Transactional
     public IssueResponseDTO createIssue(CreateIssueDTO dto) {

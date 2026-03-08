@@ -1,5 +1,6 @@
 package com.wikiaim.backend.revisions;
 
+import com.wikiaim.backend.core.TipTapTextExtractor;
 import com.wikiaim.backend.pages.Page;
 import com.wikiaim.backend.pages.PageRepository;
 import com.wikiaim.backend.users.User;
@@ -39,6 +40,11 @@ class RevisionServiceTest {
         return mock(UserRepository.class);
     }
 
+    @MockBean(TipTapTextExtractor.class)
+    TipTapTextExtractor textExtractor() {
+        return mock(TipTapTextExtractor.class);
+    }
+
     @Inject
     PageRevisionRepository revisionRepository;
 
@@ -49,11 +55,14 @@ class RevisionServiceTest {
     UserRepository userRepository;
 
     @Inject
+    TipTapTextExtractor textExtractor;
+
+    @Inject
     RevisionService revisionService;
 
     @BeforeEach
     void setUp() {
-        reset(revisionRepository, pageRepository, userRepository);
+        reset(revisionRepository, pageRepository, userRepository, textExtractor);
     }
 
     @Test
@@ -263,5 +272,69 @@ class RevisionServiceTest {
         assertEquals("Modérateur introuvable", exception.getMessage());
         verify(revisionRepository, never()).update(any());
         verify(pageRepository, never()).update(any());
+    }
+
+    @Test
+    void getRevisionDiff_shouldReturnDiffWithChanges() {
+        // Arrange
+        UUID revisionId = UUID.randomUUID();
+        UUID pageId = UUID.randomUUID();
+
+        String currentContent = "{\"blocks\":[{\"type\":\"paragraph\",\"data\":{\"text\":\"old\"}}]}";
+        String proposedContent = "{\"blocks\":[{\"type\":\"paragraph\",\"data\":{\"text\":\"new\"}}]}";
+
+        Page page = Page.builder()
+            .id(pageId)
+            .title("Titre actuel")
+            .currentContent(currentContent)
+            .build();
+
+        PageRevision revision = PageRevision.builder()
+            .id(revisionId)
+            .page(page)
+            .proposedTitle("Titre modifié")
+            .proposedContent(proposedContent)
+            .commitMessage("fix: correction contenu")
+            .status(RevisionStatus.PENDING)
+            .build();
+
+        when(revisionRepository.findById(revisionId)).thenReturn(Optional.of(revision));
+        when(textExtractor.extractLines(currentContent))
+            .thenReturn(List.of("Ligne inchangée", "Ligne à supprimer", "Dernière ligne"));
+        when(textExtractor.extractLines(proposedContent))
+            .thenReturn(List.of("Ligne inchangée", "Ligne ajoutée", "Dernière ligne"));
+
+        // Act
+        RevisionDiffDTO result = revisionService.getRevisionDiff(revisionId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(revisionId, result.revisionId());
+        assertEquals(pageId, result.pageId());
+        assertEquals("Titre actuel", result.currentTitle());
+        assertEquals("Titre modifié", result.proposedTitle());
+        assertTrue(result.titleChanged());
+        assertEquals(RevisionStatus.PENDING, result.status());
+
+        List<DiffLineDTO> diff = result.contentDiff();
+        assertFalse(diff.isEmpty());
+
+        assertTrue(diff.stream().anyMatch(d -> d.type() == DiffType.EQUAL && d.content().equals("Ligne inchangée")));
+        assertTrue(diff.stream().anyMatch(d -> d.type() == DiffType.DELETE && d.content().equals("Ligne à supprimer")));
+        assertTrue(diff.stream().anyMatch(d -> d.type() == DiffType.INSERT && d.content().equals("Ligne ajoutée")));
+    }
+
+    @Test
+    void getRevisionDiff_shouldThrowWhenRevisionNotFound() {
+        UUID revisionId = UUID.randomUUID();
+
+        when(revisionRepository.findById(revisionId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> revisionService.getRevisionDiff(revisionId)
+        );
+
+        assertEquals("Révision introuvable", exception.getMessage());
     }
 }

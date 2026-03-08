@@ -1,10 +1,12 @@
 package com.wikiaim.backend.auth;
 
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
+@Introspected
 public record AuthResponseDTO(
-    String accessToken,
-    String tokenType,
+    String backendToken,
+    String userId,
     String role
 ) {}
