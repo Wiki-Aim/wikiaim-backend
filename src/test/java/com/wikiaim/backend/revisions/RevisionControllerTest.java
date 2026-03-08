@@ -1,6 +1,5 @@
 package com.wikiaim.backend.revisions;
 
-import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -8,6 +7,8 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -24,12 +25,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @MicronautTest(environments = "test")
-@Property(name = "micronaut.security.enabled", value = "false")
 class RevisionControllerTest {
 
     @Inject
     @Client("/")
     HttpClient client;
+
+    @Inject
+    JwtTokenGenerator jwtTokenGenerator;
 
     @MockBean(RevisionService.class)
     RevisionService revisionService() {
@@ -39,11 +42,20 @@ class RevisionControllerTest {
     @Inject
     RevisionService revisionService;
 
+    private String token;
+    private UUID authenticatedUserId;
+
     @BeforeEach
     void setUp() {
         reset(revisionService);
+        authenticatedUserId = UUID.randomUUID();
+        token = generateToken(authenticatedUserId);
     }
 
+    private String generateToken(UUID userId) {
+        Authentication auth = Authentication.build(userId.toString(), List.of("USER"));
+        return jwtTokenGenerator.generateToken(auth, 3600).orElseThrow();
+    }
 
     @Test
     void proposeRevision_shouldReturn201() {
@@ -67,7 +79,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<RevisionResponseDTO> response = client.toBlocking().exchange(
-            HttpRequest.POST("/api/v1/revisions", body),
+            HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
             RevisionResponseDTO.class
         );
 
@@ -90,7 +102,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<List<RevisionResponseDTO>> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/revisions/pending"),
+            HttpRequest.GET("/api/v1/revisions/pending").bearerAuth(token),
             Argument.listOf(RevisionResponseDTO.class)
         );
 
@@ -108,7 +120,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<List<RevisionResponseDTO>> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/revisions/pending"),
+            HttpRequest.GET("/api/v1/revisions/pending").bearerAuth(token),
             Argument.listOf(RevisionResponseDTO.class)
         );
 
@@ -122,37 +134,35 @@ class RevisionControllerTest {
     void approveRevision_shouldReturn200() {
         // Arrange
         UUID revisionId = UUID.randomUUID();
-        UUID reviewerId = UUID.randomUUID();
 
-        doNothing().when(revisionService).approveRevision(revisionId, reviewerId);
+        doNothing().when(revisionService).approveRevision(revisionId, authenticatedUserId);
 
-        String url = "/api/v1/revisions/" + revisionId + "/approve?reviewerId=" + reviewerId;
+        String url = "/api/v1/revisions/" + revisionId + "/approve";
 
         // Act
         HttpResponse<?> response = client.toBlocking().exchange(
-            HttpRequest.POST(url, "")
+            HttpRequest.POST(url, "").bearerAuth(token)
         );
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatus());
-        verify(revisionService).approveRevision(revisionId, reviewerId);
+        verify(revisionService).approveRevision(revisionId, authenticatedUserId);
     }
 
     @Test
     void approveRevision_shouldReturn400WhenRevisionNotFound() {
         // Arrange
         UUID revisionId = UUID.randomUUID();
-        UUID reviewerId = UUID.randomUUID();
 
         doThrow(new IllegalArgumentException("Révision introuvable"))
-            .when(revisionService).approveRevision(revisionId, reviewerId);
+            .when(revisionService).approveRevision(eq(revisionId), any(UUID.class));
 
-        String url = "/api/v1/revisions/" + revisionId + "/approve?reviewerId=" + reviewerId;
+        String url = "/api/v1/revisions/" + revisionId + "/approve";
 
         // Act
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
-            () -> client.toBlocking().exchange(HttpRequest.POST(url, ""))
+            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(token))
         );
 
         // Assert
@@ -164,7 +174,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", Map.of()),
+                HttpRequest.POST("/api/v1/revisions", Map.of()).bearerAuth(token),
                 RevisionResponseDTO.class
             )
         );
@@ -185,7 +195,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", body),
+                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
                 RevisionResponseDTO.class
             )
         );
@@ -206,7 +216,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", body),
+                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
                 RevisionResponseDTO.class
             )
         );
@@ -227,7 +237,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", body),
+                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
                 RevisionResponseDTO.class
             )
         );
@@ -240,17 +250,16 @@ class RevisionControllerTest {
     void approveRevision_shouldReturn400WhenRevisionNotPending() {
         // Arrange
         UUID revisionId = UUID.randomUUID();
-        UUID reviewerId = UUID.randomUUID();
 
         doThrow(new IllegalStateException("Seule une révision PENDING peut être approuvée."))
-            .when(revisionService).approveRevision(revisionId, reviewerId);
+            .when(revisionService).approveRevision(eq(revisionId), any(UUID.class));
 
-        String url = "/api/v1/revisions/" + revisionId + "/approve?reviewerId=" + reviewerId;
+        String url = "/api/v1/revisions/" + revisionId + "/approve";
 
         // Act
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
-            () -> client.toBlocking().exchange(HttpRequest.POST(url, ""))
+            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(token))
         );
 
         // Assert
@@ -277,7 +286,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<RevisionDiffDTO> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff"),
+            HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff").bearerAuth(token),
             RevisionDiffDTO.class
         );
 
@@ -302,12 +311,24 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff"),
+                HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff").bearerAuth(token),
                 RevisionDiffDTO.class
             )
         );
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    }
+
+    @Test
+    void shouldReturn401WhenNoToken() {
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.GET("/api/v1/revisions/pending")
+            )
+        );
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
     }
 }

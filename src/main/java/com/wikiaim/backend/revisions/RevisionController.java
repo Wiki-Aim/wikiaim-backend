@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,12 +46,12 @@ public class RevisionController {
         return revisionService.getRevisionDiff(id);
     }
 
-    // TODO : extraire automatiquement du token JWT le reviewerId.
     @Post("/{id}/approve")
-    @Operation(summary = "Approuver une révision", description = "Valide une révision PENDING et met à jour le contenu de la page")
+    @Operation(summary = "Approuver une révision", description = "Valide une révision PENDING et met à jour le contenu de la page. Le reviewer est identifié via le token JWT.")
     @ApiResponse(responseCode = "200", description = "Révision approuvée, page mise à jour")
     @ApiResponse(responseCode = "400", description = "Révision introuvable, déjà traitée, ou modérateur introuvable")
-    public HttpResponse<Void> approveRevision(@PathVariable UUID id, @QueryValue UUID reviewerId) {
+    public HttpResponse<Void> approveRevision(@PathVariable UUID id, Principal principal) {
+        UUID reviewerId = UUID.fromString(principal.getName());
         revisionService.approveRevision(id, reviewerId);
         return HttpResponse.ok();
     }
