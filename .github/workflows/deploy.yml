@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "$SSH_KEY" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
-          SSH_OPTS="-o StrictHostKeyChecking=no -i /tmp/ssh_key -p $VPS_PORT"
-          scp $SSH_OPTS docker-compose.prod.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/
-          ssh $SSH_OPTS $VPS_USERNAME@$VPS_HOST 'cd /var/www/wikiaim && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d --remove-orphans'
+          COMMON_OPTS="-o StrictHostKeyChecking=no -i /tmp/ssh_key"
+          scp $COMMON_OPTS -P $VPS_PORT docker-compose.prod.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/
+          ssh $COMMON_OPTS -p $VPS_PORT $VPS_USERNAME@$VPS_HOST 'cd /var/www/wikiaim && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d --remove-orphans'
           rm /tmp/ssh_key
