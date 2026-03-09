@@ -90,10 +90,12 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+          GHCR_USER: ${{ github.actor }}
         run: |
           echo "$SSH_KEY" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
           COMMON_OPTS="-o StrictHostKeyChecking=no -i /tmp/ssh_key"
           scp $COMMON_OPTS -P $VPS_PORT docker-compose.prod.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/
-          ssh $COMMON_OPTS -p $VPS_PORT $VPS_USERNAME@$VPS_HOST 'cd /var/www/wikiaim && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d --remove-orphans'
+          ssh $COMMON_OPTS -p $VPS_PORT $VPS_USERNAME@$VPS_HOST "echo '$GHCR_PAT' | docker login ghcr.io -u $GHCR_USER --password-stdin && cd /var/www/wikiaim && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d --remove-orphans"
           rm /tmp/ssh_key
