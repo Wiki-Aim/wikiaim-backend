@@ -1,0 +1,15 @@
+micronaut:
+  router:
+    static-resources:
+      swagger:
+        enabled: false
+      swagger-ui:
+        enabled: false
+  security:
+    intercept-url-map:
+      - pattern: /swagger/**
+        access:
+          - isAuthenticated()
+      - pattern: /swagger-ui/**
+        access:
+          - isAuthenticated()

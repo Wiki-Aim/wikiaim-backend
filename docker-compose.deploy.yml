@@ -3,6 +3,7 @@ services:
     image: ghcr.io/wiki-aim/wikiaim-backend:${IMAGE_TAG}
     restart: unless-stopped
     environment:
+      MICRONAUT_ENVIRONMENTS: ${ENV_NAME}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: wikiaim
