@@ -39,10 +39,11 @@ public class IssueController {
     }
 
     @Patch("/{id}/status")
-    @Secured(SecurityRule.IS_AUTHENTICATED)
+    @Secured({"MODERATOR", "ADMIN"})
     @Operation(summary = "Changer le statut d'une issue", description = "Met à jour le statut d'une issue existante")
     @ApiResponse(responseCode = "200", description = "Statut mis à jour")
     @ApiResponse(responseCode = "400", description = "Statut invalide ou identique au statut actuel")
+    @ApiResponse(responseCode = "403", description = "Accès refusé — rôle MODERATOR ou ADMIN requis")
     @ApiResponse(responseCode = "404", description = "Issue introuvable")
     public HttpResponse<IssueResponseDTO> updateStatus(@PathVariable UUID id, @Body @Valid UpdateIssueStatusDTO dto) {
         return HttpResponse.ok(issueService.updateStatus(id, dto));

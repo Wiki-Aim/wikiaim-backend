@@ -3,6 +3,7 @@ package com.wikiaim.backend.revisions;
 import com.wikiaim.backend.core.TipTapTextExtractor;
 import com.wikiaim.backend.pages.Page;
 import com.wikiaim.backend.pages.PageRepository;
+import com.wikiaim.backend.users.Role;
 import com.wikiaim.backend.users.User;
 import com.wikiaim.backend.users.UserRepository;
 import io.micronaut.context.annotation.Property;
@@ -177,6 +178,9 @@ class RevisionServiceTest {
         // Arrange
         UUID revisionId = UUID.randomUUID();
         UUID reviewerId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
+
+        User author = User.builder().id(authorId).build();
 
         Page page = Page.builder()
             .id(UUID.randomUUID())
@@ -187,12 +191,13 @@ class RevisionServiceTest {
         PageRevision revision = PageRevision.builder()
             .id(revisionId)
             .page(page)
+            .author(author)
             .proposedTitle("Nouveau titre")
             .proposedContent("{\"new\":true}")
             .status(RevisionStatus.PENDING)
             .build();
 
-        User reviewer = User.builder().id(reviewerId).build();
+        User reviewer = User.builder().id(reviewerId).role(Role.MODERATOR).build();
 
         when(revisionRepository.findById(revisionId)).thenReturn(Optional.of(revision));
         when(userRepository.findById(reviewerId)).thenReturn(Optional.of(reviewer));
@@ -272,6 +277,71 @@ class RevisionServiceTest {
         assertEquals("Modérateur introuvable", exception.getMessage());
         verify(revisionRepository, never()).update(any());
         verify(pageRepository, never()).update(any());
+    }
+
+    @Test
+    void approveRevision_shouldThrowWhenModeratorApprovesOwnRevision() {
+        // Arrange
+        UUID revisionId = UUID.randomUUID();
+        UUID authorId = UUID.randomUUID();
+
+        User author = User.builder().id(authorId).role(Role.MODERATOR).build();
+        Page page = Page.builder().id(UUID.randomUUID()).build();
+
+        PageRevision revision = PageRevision.builder()
+            .id(revisionId)
+            .page(page)
+            .author(author)
+            .status(RevisionStatus.PENDING)
+            .build();
+
+        when(revisionRepository.findById(revisionId)).thenReturn(Optional.of(revision));
+        when(userRepository.findById(authorId)).thenReturn(Optional.of(author));
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> revisionService.approveRevision(revisionId, authorId)
+        );
+
+        assertEquals("Un modérateur ne peut pas approuver sa propre révision.", exception.getMessage());
+        verify(revisionRepository, never()).update(any());
+        verify(pageRepository, never()).update(any());
+    }
+
+    @Test
+    void approveRevision_shouldAllowAdminToApproveOwnRevision() {
+        // Arrange
+        UUID revisionId = UUID.randomUUID();
+        UUID adminId = UUID.randomUUID();
+
+        User admin = User.builder().id(adminId).role(Role.ADMIN).build();
+        Page page = Page.builder()
+            .id(UUID.randomUUID())
+            .title("Ancien titre")
+            .currentContent("{\"old\":true}")
+            .build();
+
+        PageRevision revision = PageRevision.builder()
+            .id(revisionId)
+            .page(page)
+            .author(admin)
+            .proposedTitle("Nouveau titre")
+            .proposedContent("{\"new\":true}")
+            .status(RevisionStatus.PENDING)
+            .build();
+
+        when(revisionRepository.findById(revisionId)).thenReturn(Optional.of(revision));
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
+
+        // Act
+        revisionService.approveRevision(revisionId, adminId);
+
+        // Assert
+        assertEquals(RevisionStatus.APPROVED, revision.getStatus());
+        assertEquals(admin, revision.getReviewer());
+        verify(revisionRepository).update(revision);
+        verify(pageRepository).update(page);
     }
 
     @Test

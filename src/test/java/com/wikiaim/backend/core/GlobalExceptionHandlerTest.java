@@ -48,7 +48,7 @@ class GlobalExceptionHandlerTest {
         assertNotNull(body);
         assertEquals(400, body.status());
         assertEquals("Bad Request", body.error());
-        assertEquals("Ressource introuvable", body.message());
+        assertEquals("Requête invalide", body.message());
     }
 
     @Test
@@ -65,7 +65,7 @@ class GlobalExceptionHandlerTest {
         ApiErrorDTO body = exception.getResponse().getBody(ApiErrorDTO.class).orElse(null);
         assertNotNull(body);
         assertEquals(400, body.status());
-        assertEquals("Opération invalide", body.message());
+        assertEquals("Opération non autorisée", body.message());
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.wikiaim.backend.issues;
 
-import io.micronaut.context.annotation.Property;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -8,6 +7,8 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
+import io.micronaut.security.authentication.Authentication;
+import io.micronaut.security.token.jwt.generator.JwtTokenGenerator;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -25,12 +26,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @MicronautTest(environments = "test")
-@Property(name = "micronaut.security.enabled", value = "false")
 class IssueControllerTest {
 
     @Inject
     @Client("/")
     HttpClient client;
+
+    @Inject
+    JwtTokenGenerator jwtTokenGenerator;
 
     @MockBean(IssueService.class)
     IssueService issueService() {
@@ -40,9 +43,19 @@ class IssueControllerTest {
     @Inject
     IssueService issueService;
 
+    private String userToken;
+    private String moderatorToken;
+
     @BeforeEach
     void setUp() {
         reset(issueService);
+        userToken = generateToken(UUID.randomUUID(), "USER");
+        moderatorToken = generateToken(UUID.randomUUID(), "MODERATOR");
+    }
+
+    private String generateToken(UUID userId, String role) {
+        Authentication auth = Authentication.build(userId.toString(), List.of(role));
+        return jwtTokenGenerator.generateToken(auth, 3600).orElseThrow();
     }
 
     @Test
@@ -66,7 +79,7 @@ class IssueControllerTest {
 
         // Act
         HttpResponse<IssueResponseDTO> response = client.toBlocking().exchange(
-            HttpRequest.POST("/api/v1/issues", body),
+            HttpRequest.POST("/api/v1/issues", body).bearerAuth(userToken),
             IssueResponseDTO.class
         );
 
@@ -83,7 +96,7 @@ class IssueControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/issues", Map.of()),
+                HttpRequest.POST("/api/v1/issues", Map.of()).bearerAuth(userToken),
                 IssueResponseDTO.class
             )
         );
@@ -103,7 +116,7 @@ class IssueControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/issues", body),
+                HttpRequest.POST("/api/v1/issues", body).bearerAuth(userToken),
                 IssueResponseDTO.class
             )
         );
@@ -123,7 +136,7 @@ class IssueControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/issues", body),
+                HttpRequest.POST("/api/v1/issues", body).bearerAuth(userToken),
                 IssueResponseDTO.class
             )
         );
@@ -141,7 +154,7 @@ class IssueControllerTest {
 
         when(issueService.getOpenIssues()).thenReturn(List.of(dto));
 
-        // Act
+        // Act — listOpenIssues is @Secured(IS_ANONYMOUS), no token needed
         HttpResponse<List<IssueResponseDTO>> response = client.toBlocking().exchange(
             HttpRequest.GET("/api/v1/issues/open"),
             Argument.listOf(IssueResponseDTO.class)
@@ -185,7 +198,7 @@ class IssueControllerTest {
 
         // Act
         HttpResponse<IssueResponseDTO> response = client.toBlocking().exchange(
-            HttpRequest.PATCH("/api/v1/issues/" + issueId + "/status", body),
+            HttpRequest.PATCH("/api/v1/issues/" + issueId + "/status", body).bearerAuth(moderatorToken),
             IssueResponseDTO.class
         );
 
@@ -197,13 +210,32 @@ class IssueControllerTest {
     }
 
     @Test
+    void updateStatus_shouldReturn403WhenUserRole() {
+        // Arrange
+        Map<String, Object> body = Map.of("status", "IN_PROGRESS");
+
+        // Act
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(
+                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", body).bearerAuth(userToken),
+                IssueResponseDTO.class
+            )
+        );
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+        verify(issueService, never()).updateStatus(any(), any());
+    }
+
+    @Test
     void updateStatus_shouldReturn400WhenStatusInvalid() {
         Map<String, Object> body = Map.of("status", "TOTO");
 
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", body),
+                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", body).bearerAuth(moderatorToken),
                 IssueResponseDTO.class
             )
         );
@@ -217,7 +249,7 @@ class IssueControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", Map.of()),
+                HttpRequest.PATCH("/api/v1/issues/" + UUID.randomUUID() + "/status", Map.of()).bearerAuth(moderatorToken),
                 IssueResponseDTO.class
             )
         );

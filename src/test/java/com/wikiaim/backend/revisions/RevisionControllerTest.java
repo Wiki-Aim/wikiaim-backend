@@ -42,18 +42,22 @@ class RevisionControllerTest {
     @Inject
     RevisionService revisionService;
 
-    private String token;
+    private String userToken;
+    private String moderatorToken;
     private UUID authenticatedUserId;
+    private UUID moderatorUserId;
 
     @BeforeEach
     void setUp() {
         reset(revisionService);
         authenticatedUserId = UUID.randomUUID();
-        token = generateToken(authenticatedUserId);
+        moderatorUserId = UUID.randomUUID();
+        userToken = generateToken(authenticatedUserId, "USER");
+        moderatorToken = generateToken(moderatorUserId, "MODERATOR");
     }
 
-    private String generateToken(UUID userId) {
-        Authentication auth = Authentication.build(userId.toString(), List.of("USER"));
+    private String generateToken(UUID userId, String role) {
+        Authentication auth = Authentication.build(userId.toString(), List.of(role));
         return jwtTokenGenerator.generateToken(auth, 3600).orElseThrow();
     }
 
@@ -79,7 +83,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<RevisionResponseDTO> response = client.toBlocking().exchange(
-            HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
+            HttpRequest.POST("/api/v1/revisions", body).bearerAuth(userToken),
             RevisionResponseDTO.class
         );
 
@@ -102,7 +106,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<List<RevisionResponseDTO>> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/revisions/pending").bearerAuth(token),
+            HttpRequest.GET("/api/v1/revisions/pending").bearerAuth(userToken),
             Argument.listOf(RevisionResponseDTO.class)
         );
 
@@ -120,7 +124,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<List<RevisionResponseDTO>> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/revisions/pending").bearerAuth(token),
+            HttpRequest.GET("/api/v1/revisions/pending").bearerAuth(userToken),
             Argument.listOf(RevisionResponseDTO.class)
         );
 
@@ -135,18 +139,35 @@ class RevisionControllerTest {
         // Arrange
         UUID revisionId = UUID.randomUUID();
 
-        doNothing().when(revisionService).approveRevision(revisionId, authenticatedUserId);
+        doNothing().when(revisionService).approveRevision(revisionId, moderatorUserId);
 
         String url = "/api/v1/revisions/" + revisionId + "/approve";
 
         // Act
         HttpResponse<?> response = client.toBlocking().exchange(
-            HttpRequest.POST(url, "").bearerAuth(token)
+            HttpRequest.POST(url, "").bearerAuth(moderatorToken)
         );
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatus());
-        verify(revisionService).approveRevision(revisionId, authenticatedUserId);
+        verify(revisionService).approveRevision(revisionId, moderatorUserId);
+    }
+
+    @Test
+    void approveRevision_shouldReturn403WhenUserRole() {
+        // Arrange
+        UUID revisionId = UUID.randomUUID();
+        String url = "/api/v1/revisions/" + revisionId + "/approve";
+
+        // Act
+        HttpClientResponseException exception = assertThrows(
+            HttpClientResponseException.class,
+            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(userToken))
+        );
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+        verify(revisionService, never()).approveRevision(any(), any());
     }
 
     @Test
@@ -162,7 +183,7 @@ class RevisionControllerTest {
         // Act
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
-            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(token))
+            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(moderatorToken))
         );
 
         // Assert
@@ -174,7 +195,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", Map.of()).bearerAuth(token),
+                HttpRequest.POST("/api/v1/revisions", Map.of()).bearerAuth(userToken),
                 RevisionResponseDTO.class
             )
         );
@@ -195,7 +216,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
+                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(userToken),
                 RevisionResponseDTO.class
             )
         );
@@ -216,7 +237,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
+                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(userToken),
                 RevisionResponseDTO.class
             )
         );
@@ -237,7 +258,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(token),
+                HttpRequest.POST("/api/v1/revisions", body).bearerAuth(userToken),
                 RevisionResponseDTO.class
             )
         );
@@ -259,7 +280,7 @@ class RevisionControllerTest {
         // Act
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
-            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(token))
+            () -> client.toBlocking().exchange(HttpRequest.POST(url, "").bearerAuth(moderatorToken))
         );
 
         // Assert
@@ -286,7 +307,7 @@ class RevisionControllerTest {
 
         // Act
         HttpResponse<RevisionDiffDTO> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff").bearerAuth(token),
+            HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff").bearerAuth(userToken),
             RevisionDiffDTO.class
         );
 
@@ -311,7 +332,7 @@ class RevisionControllerTest {
         HttpClientResponseException exception = assertThrows(
             HttpClientResponseException.class,
             () -> client.toBlocking().exchange(
-                HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff").bearerAuth(token),
+                HttpRequest.GET("/api/v1/revisions/" + revisionId + "/diff").bearerAuth(userToken),
                 RevisionDiffDTO.class
             )
         );

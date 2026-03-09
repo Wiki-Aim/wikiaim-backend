@@ -6,6 +6,7 @@ import com.github.difflib.patch.Patch;
 import com.wikiaim.backend.core.TipTapTextExtractor;
 import com.wikiaim.backend.pages.Page;
 import com.wikiaim.backend.pages.PageRepository;
+import com.wikiaim.backend.users.Role;
 import com.wikiaim.backend.users.User;
 import com.wikiaim.backend.users.UserRepository;
 import jakarta.inject.Singleton;
@@ -66,6 +67,10 @@ public class RevisionService {
 
         User reviewer = userRepository.findById(reviewerId)
                                       .orElseThrow(() -> new IllegalArgumentException("Modérateur introuvable"));
+
+        if (revision.getAuthor().getId().equals(reviewerId) && reviewer.getRole() != Role.ADMIN) {
+            throw new IllegalStateException("Un modérateur ne peut pas approuver sa propre révision.");
+        }
 
         revision.setStatus(RevisionStatus.APPROVED);
         revision.setReviewer(reviewer);

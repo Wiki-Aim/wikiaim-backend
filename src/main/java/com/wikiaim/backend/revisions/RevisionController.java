@@ -47,9 +47,11 @@ public class RevisionController {
     }
 
     @Post("/{id}/approve")
+    @Secured({"MODERATOR", "ADMIN"})
     @Operation(summary = "Approuver une révision", description = "Valide une révision PENDING et met à jour le contenu de la page. Le reviewer est identifié via le token JWT.")
     @ApiResponse(responseCode = "200", description = "Révision approuvée, page mise à jour")
     @ApiResponse(responseCode = "400", description = "Révision introuvable, déjà traitée, ou modérateur introuvable")
+    @ApiResponse(responseCode = "403", description = "Accès refusé — rôle MODERATOR ou ADMIN requis")
     public HttpResponse<Void> approveRevision(@PathVariable UUID id, Principal principal) {
         UUID reviewerId = UUID.fromString(principal.getName());
         revisionService.approveRevision(id, reviewerId);

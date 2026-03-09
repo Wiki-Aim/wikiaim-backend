@@ -22,6 +22,7 @@ public record ProposeRevisionDTO(
     String proposedTitle,
 
     @NotBlank(message = "Le contenu (JSON) ne peut pas être vide.")
+    @Size(max = 5_000_000, message = "Le contenu ne doit pas dépasser 5 Mo.")
     String proposedContent,
 
     @Size(max = 500, message = "Le message de commit ne doit pas dépasser 500 caractères.")

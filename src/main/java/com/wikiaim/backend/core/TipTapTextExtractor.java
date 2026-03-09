@@ -3,10 +3,12 @@ package com.wikiaim.backend.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Singleton;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Singleton
 public class TipTapTextExtractor {
 
@@ -34,6 +36,7 @@ public class TipTapTextExtractor {
             }
             return lines;
         } catch (Exception e) {
+            log.warn("Erreur lors de l'extraction du texte TipTap", e);
             return List.of();
         }
     }

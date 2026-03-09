@@ -16,15 +16,17 @@ public class GlobalExceptionHandler {
 
     @Error(global = true, exception = IllegalArgumentException.class)
     public HttpResponse<ApiErrorDTO> handleIllegalArgument(HttpRequest<?> request, IllegalArgumentException e) {
+        log.warn("Bad request on {} {}: {}", request.getMethod(), request.getPath(), e.getMessage());
         return HttpResponse.badRequest(
-            new ApiErrorDTO(400, "Bad Request", e.getMessage())
+            new ApiErrorDTO(400, "Bad Request", "Requête invalide")
         );
     }
 
     @Error(global = true, exception = IllegalStateException.class)
     public HttpResponse<ApiErrorDTO> handleIllegalState(HttpRequest<?> request, IllegalStateException e) {
+        log.warn("Illegal state on {} {}: {}", request.getMethod(), request.getPath(), e.getMessage());
         return HttpResponse.badRequest(
-            new ApiErrorDTO(400, "Bad Request", e.getMessage())
+            new ApiErrorDTO(400, "Bad Request", "Opération non autorisée")
         );
     }
 
