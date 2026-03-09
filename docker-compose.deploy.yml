@@ -24,6 +24,8 @@ services:
       - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.entrypoints=websecure"
       - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.tls.certresolver=myresolver"
       - "traefik.http.services.${TRAEFIK_SERVICE_NAME}.loadbalancer.server.port=8080"
+      - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.middlewares=${TRAEFIK_MIDDLEWARES:-}"
+      - "traefik.http.middlewares.${TRAEFIK_SERVICE_NAME}-auth.basicauth.users=${BASIC_AUTH_USERS:-}"
 
   postgres:
     image: postgres:17
