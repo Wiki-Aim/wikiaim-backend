@@ -91,5 +91,5 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/wikiaim
-            docker compose pull app
-            docker compose up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml pull app
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
