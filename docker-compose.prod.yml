@@ -18,6 +18,7 @@ services:
       - internal
       - traefik-net
     labels:
+      - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
       - "traefik.http.routers.wikiaim-api.rule=Host(`${WIKIAIM_DOMAIN}`)"
       - "traefik.http.routers.wikiaim-api.entrypoints=websecure"
