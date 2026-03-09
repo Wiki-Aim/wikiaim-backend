@@ -6,6 +6,7 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import io.micronaut.validation.Validated;
@@ -25,6 +26,7 @@ public class IssueController {
 
     @Post
     @Secured(SecurityRule.IS_AUTHENTICATED)
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(summary = "Créer une issue", description = "Crée un nouveau signalement de problème ou une suggestion")
     @ApiResponse(responseCode = "201", description = "Issue créée")
     public HttpResponse<IssueResponseDTO> createIssue(@Body @Valid CreateIssueDTO dto) {
@@ -40,6 +42,7 @@ public class IssueController {
 
     @Patch("/{id}/status")
     @Secured({"MODERATOR", "ADMIN"})
+    @SecurityRequirement(name = "BearerAuth")
     @Operation(summary = "Changer le statut d'une issue", description = "Met à jour le statut d'une issue existante")
     @ApiResponse(responseCode = "200", description = "Statut mis à jour")
     @ApiResponse(responseCode = "400", description = "Statut invalide ou identique au statut actuel")

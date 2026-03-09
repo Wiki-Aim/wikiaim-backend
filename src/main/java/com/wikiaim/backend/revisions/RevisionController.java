@@ -7,6 +7,7 @@ import io.micronaut.security.rules.SecurityRule;
 import io.micronaut.validation.Validated;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @Validated
 @RequiredArgsConstructor
 @Tag(name = "Revisions", description = "Proposition et modération des révisions de pages")
+@SecurityRequirement(name = "BearerAuth")
 public class RevisionController {
 
     private final RevisionService revisionService;
