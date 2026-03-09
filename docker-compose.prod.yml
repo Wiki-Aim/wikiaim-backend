@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/eryors/wikiaim-backend:latest
+    image: ghcr.io/wiki-aim/wikiaim-backend:latest
     container_name: wikiaim-backend
     restart: unless-stopped
     environment:
