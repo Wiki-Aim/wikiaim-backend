@@ -84,24 +84,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy compose file to VPS
-        uses: appleboy/scp-action@v1.0.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          port: ${{ secrets.VPS_PORT }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: docker-compose.prod.yml
-          target: /var/www/wikiaim
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          port: ${{ secrets.VPS_PORT }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            cd /var/www/wikiaim
-            docker compose -f docker-compose.prod.yml pull app
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+      - name: Deploy to VPS
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+        run: |
+          echo "$SSH_KEY" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          SSH_OPTS="-o StrictHostKeyChecking=no -i /tmp/ssh_key -p $VPS_PORT"
+          scp $SSH_OPTS docker-compose.prod.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/
+          ssh $SSH_OPTS $VPS_USERNAME@$VPS_HOST 'cd /var/www/wikiaim && docker compose -f docker-compose.prod.yml pull app && docker compose -f docker-compose.prod.yml up -d --remove-orphans'
+          rm /tmp/ssh_key
