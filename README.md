@@ -1,75 +1,100 @@
-## Micronaut 4.10.8 Documentation
+# WikiAim Backend
 
-- [User Guide](https://docs.micronaut.io/4.10.8/guide/index.html)
-- [API Reference](https://docs.micronaut.io/4.10.8/api/index.html)
-- [Configuration Reference](https://docs.micronaut.io/4.10.8/guide/configurationreference.html)
-- [Micronaut Guides](https://guides.micronaut.io/index.html)
----
+Backend API du wiki collaboratif WikiAim.
 
-- [Micronaut Maven Plugin documentation](https://micronaut-projects.github.io/micronaut-maven-plugin/latest/)
-## Feature lombok documentation
+## Stack technique
 
-- [Micronaut Project Lombok documentation](https://docs.micronaut.io/latest/guide/index.html#lombok)
+- **Java 25** / **Micronaut 4**
+- **PostgreSQL 17** + Flyway (migrations)
+- **JPA / Hibernate** (ORM)
+- **JWT** (authentification) + **Discord OAuth** (connexion)
+- **Docker** + **Traefik** (déploiement)
 
-- [https://projectlombok.org/features/all](https://projectlombok.org/features/all)
+## Architecture
 
+```
+src/main/java/com/wikiaim/backend/
+├── auth/           # Discord OAuth, JWT, DevTokenController
+├── core/           # GlobalExceptionHandler, TipTapTextExtractor
+├── issues/         # Signalement de problèmes (CRUD)
+├── pages/          # Pages du wiki (lecture publique)
+├── revisions/      # Propositions de modifications + diff + approbation
+└── users/          # Entité User, rôles (USER, CONTRIBUTOR, MODERATOR, ADMIN)
+```
 
-## Feature flyway documentation
+## Lancer en local
 
-- [Micronaut Flyway Database Migration documentation](https://micronaut-projects.github.io/micronaut-flyway/latest/guide/index.html)
+### Prérequis
 
-- [https://flywaydb.org/](https://flywaydb.org/)
+- Java 25+
+- Maven 3.9+
+- Docker (pour PostgreSQL)
 
+### Démarrage
 
-## Feature hibernate-jpa documentation
+```bash
+# 1. Lancer PostgreSQL
+docker compose up -d
 
-- [Micronaut Hibernate JPA documentation](https://micronaut-projects.github.io/micronaut-sql/latest/guide/index.html#hibernate)
+# 2. Lancer l'application
+./mvnw mn:run -Dmicronaut.environments=local
+```
 
+L'API est disponible sur `http://localhost:8080`.
+Swagger UI : `http://localhost:8080/swagger-ui/index.html`.
 
-## Feature openapi documentation
+### Données de test (optionnel)
 
-- [Micronaut OpenAPI Support documentation](https://micronaut-projects.github.io/micronaut-openapi/latest/guide/index.html)
+Un script de seed est disponible pour peupler la base avec des données réalistes (utilisateurs, pages, révisions, issues) :
 
-- [https://www.openapis.org](https://www.openapis.org)
+```bash
+docker exec -i wikiaim-postgres psql -U wikiaim -d wikiaim < src/main/resources/db/seed-local.sql
+```
 
+Le script est idempotent (re-exécutable sans erreur grâce à `ON CONFLICT DO NOTHING`).
 
-## Feature maven-enforcer-plugin documentation
+### Tester avec Swagger
 
-- [https://maven.apache.org/enforcer/maven-enforcer-plugin/](https://maven.apache.org/enforcer/maven-enforcer-plugin/)
+En environnement `local`, un endpoint de dev est disponible :
 
+1. Appeler `POST /api/v1/dev/token?role=ADMIN` pour générer un token JWT
+2. Cliquer sur **Authorize** dans Swagger UI
+3. Coller le token
+4. Tous les endpoints protégés sont accessibles
 
-## Feature validation documentation
+### Lancer les tests
 
-- [Micronaut Validation documentation](https://micronaut-projects.github.io/micronaut-validation/latest/guide/)
+```bash
+./mvnw verify
+```
 
+Les tests utilisent [Micronaut Test Resources](https://micronaut-projects.github.io/micronaut-test-resources/latest/guide/) qui lance automatiquement un PostgreSQL en container.
 
-## Feature security-jwt documentation
+## Configuration
 
-- [Micronaut Security JWT documentation](https://micronaut-projects.github.io/micronaut-security/latest/guide/index.html)
+| Variable | Description | Défaut |
+|----------|-------------|--------|
+| `DB_HOST` | Hôte PostgreSQL | `localhost` |
+| `DB_PORT` | Port PostgreSQL | `5432` |
+| `DB_NAME` | Nom de la base | `wikiaim` |
+| `DB_USERNAME` | Utilisateur DB | `wikiaim` |
+| `DB_PASSWORD` | Mot de passe DB | _(requis)_ |
+| `JWT_SECRET` | Clé de signature JWT (32+ chars) | _(requis)_ |
+| `CORS_ORIGIN` | Origine autorisée (frontend) | _(requis)_ |
 
+Voir [`.env.example`](.env.example) pour un exemple complet.
 
-## Feature jdbc-hikari documentation
+## Déploiement
 
-- [Micronaut Hikari JDBC Connection Pool documentation](https://micronaut-projects.github.io/micronaut-sql/latest/guide/index.html#jdbc)
+Le projet utilise GitHub Actions pour le CI/CD :
 
+- **`develop`** → build + deploy en **preprod**
+- **`main`** → build + deploy en **prod**
 
-## Feature micronaut-aot documentation
+L'image Docker est poussée sur GHCR et déployée via `docker compose` sur un VPS avec Traefik.
 
-- [Micronaut AOT documentation](https://micronaut-projects.github.io/micronaut-aot/latest/guide/)
+Voir [`CONTRIBUTING.md`](CONTRIBUTING.md) pour le workflow Git.
 
+## Licence
 
-## Feature serialization-jackson documentation
-
-- [Micronaut Serialization Jackson Core documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/)
-
-
-## Feature management documentation
-
-- [Micronaut Management documentation](https://docs.micronaut.io/latest/guide/index.html#management)
-
-
-## Feature test-resources documentation
-
-- [Micronaut Test Resources documentation](https://micronaut-projects.github.io/micronaut-test-resources/latest/guide/)
-
-
+[MIT](LICENSE)

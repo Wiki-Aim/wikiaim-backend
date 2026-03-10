@@ -8,10 +8,12 @@ COPY src/ src/
 RUN mvn package -DskipTests -B
 
 FROM eclipse-temurin:25-jre
+RUN groupadd -r app && useradd -r -g app -d /app -s /sbin/nologin app
 WORKDIR /app
 
-COPY --from=build /app/target/wikiaim-backend-0.1.jar app.jar
+COPY --from=build --chown=app:app /app/target/wikiaim-backend-0.1.jar app.jar
 
+USER app
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseG1GC", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
