@@ -114,11 +114,11 @@ jobs:
           COMMON_OPTS="-o StrictHostKeyChecking=no -i /tmp/ssh_key"
           PROJECT="wikiaim-${ENV_NAME}"
 
-          scp $COMMON_OPTS -P $VPS_PORT docker-compose.deploy.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/
+          scp $COMMON_OPTS -P $VPS_PORT docker-compose.deploy.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/wikiaim-backend/
 
           ssh $COMMON_OPTS -p $VPS_PORT $VPS_USERNAME@$VPS_HOST "\
             echo '${GHCR_PAT}' | docker login ghcr.io -u ${GHCR_USER} --password-stdin && \
-            cd /var/www/wikiaim && \
+            cd /var/www/wikiaim/wikiaim-backend && \
             docker compose -f docker-compose.deploy.yml --env-file ${ENV_NAME}/.env -p ${PROJECT} pull app && \
             docker compose -f docker-compose.deploy.yml --env-file ${ENV_NAME}/.env -p ${PROJECT} up -d --remove-orphans"
 
