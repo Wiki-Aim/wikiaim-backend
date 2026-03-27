@@ -78,6 +78,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}
+          flavor: |
+            latest=false
           tags: |
             type=raw,value=${{ steps.set-env.outputs.image_tag }}
             type=sha
