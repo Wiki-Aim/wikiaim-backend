@@ -21,7 +21,7 @@ import java.util.UUID;
 @Controller("/api/v1/dev")
 @Secured(SecurityRule.IS_ANONYMOUS)
 @Tag(name = "Dev", description = "Endpoints de développement — indisponibles en production")
-@Requires(env = "local")
+@Requires(notEnv = "prod")
 @RequiredArgsConstructor
 public class DevTokenController {
 
@@ -30,7 +30,7 @@ public class DevTokenController {
     @Post("/token")
     @Operation(
         summary = "Générer un token JWT de test",
-        description = "Génère un token JWT pour le rôle spécifié. Disponible uniquement en environnement local."
+        description = "Génère un token JWT pour le rôle spécifié. Disponible en local et preprod uniquement."
     )
     @ApiResponse(responseCode = "200", description = "Token JWT généré")
     public AuthResponseDTO generateToken(@QueryValue(defaultValue = "USER") Role role) {

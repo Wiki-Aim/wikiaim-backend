@@ -44,12 +44,12 @@ class DiscordAuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        discordProfile = new DiscordUserProfile("123456789", "Erwan", "erwan@test.com", "abc123hash");
+        discordProfile = new DiscordUserProfile("123456789", "TestUser", "testuser@test.com", "abc123hash");
         existingUser = User.builder()
             .id(UUID.randomUUID())
             .discordId("123456789")
-            .username("Erwan")
-            .email("erwan@test.com")
+            .username("TestUser")
+            .email("testuser@test.com")
             .avatarUrl("https://cdn.discordapp.com/avatars/123456789/abc123hash.png")
             .role(Role.USER)
             .build();
@@ -78,8 +78,8 @@ class DiscordAuthServiceTest {
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
         assertEquals("123456789", savedUser.getDiscordId());
-        assertEquals("Erwan", savedUser.getUsername());
-        assertEquals("erwan@test.com", savedUser.getEmail());
+        assertEquals("TestUser", savedUser.getUsername());
+        assertEquals("testuser@test.com", savedUser.getEmail());
         assertEquals("https://cdn.discordapp.com/avatars/123456789/abc123hash.png", savedUser.getAvatarUrl());
         assertEquals(Role.USER, savedUser.getRole());
     }
@@ -125,12 +125,12 @@ class DiscordAuthServiceTest {
     void loginWithDiscord_shouldHandleNullAvatar() {
         // Arrange
         DiscordTokenRequest request = new DiscordTokenRequest("valid_token");
-        DiscordUserProfile profileWithoutAvatar = new DiscordUserProfile("123456789", "Erwan", "erwan@test.com", null);
+        DiscordUserProfile profileWithoutAvatar = new DiscordUserProfile("123456789", "TestUser", "testuser@test.com", null);
         User userWithoutAvatar = User.builder()
             .id(UUID.randomUUID())
             .discordId("123456789")
-            .username("Erwan")
-            .email("erwan@test.com")
+            .username("TestUser")
+            .email("testuser@test.com")
             .avatarUrl(null)
             .role(Role.USER)
             .build();

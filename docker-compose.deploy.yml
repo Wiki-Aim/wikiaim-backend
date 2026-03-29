@@ -1,9 +1,9 @@
 services:
   app:
-    image: ghcr.io/wiki-aim/wikiaim-backend:latest
-    container_name: wikiaim-backend
+    image: ghcr.io/wiki-aim/wikiaim-backend:${IMAGE_TAG}
     restart: unless-stopped
     environment:
+      MICRONAUT_ENVIRONMENTS: ${ENV_NAME}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: wikiaim
@@ -20,14 +20,15 @@ services:
     labels:
       - "traefik.docker.network=traefik-net"
       - "traefik.enable=true"
-      - "traefik.http.routers.wikiaim-api.rule=Host(`${WIKIAIM_DOMAIN}`)"
-      - "traefik.http.routers.wikiaim-api.entrypoints=websecure"
-      - "traefik.http.routers.wikiaim-api.tls.certresolver=myresolver"
-      - "traefik.http.services.wikiaim-api.loadbalancer.server.port=8080"
+      - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.rule=Host(`${WIKIAIM_DOMAIN}`)"
+      - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.entrypoints=websecure"
+      - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.tls.certresolver=myresolver"
+      - "traefik.http.services.${TRAEFIK_SERVICE_NAME}.loadbalancer.server.port=8080"
+      - "traefik.http.routers.${TRAEFIK_SERVICE_NAME}.middlewares=${TRAEFIK_MIDDLEWARES:-}"
+      - "traefik.http.middlewares.${TRAEFIK_SERVICE_NAME}-auth.basicauth.users=${BASIC_AUTH_USERS:-}"
 
   postgres:
     image: postgres:17
-    container_name: wikiaim-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USERNAME}
