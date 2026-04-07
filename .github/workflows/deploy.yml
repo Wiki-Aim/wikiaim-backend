@@ -114,7 +114,7 @@ jobs:
           echo "$SSH_KEY" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
           COMMON_OPTS="-o StrictHostKeyChecking=no -i /tmp/ssh_key"
-          PROJECT="wikiaim-${ENV_NAME}"
+          PROJECT="wikiaim-backend-${ENV_NAME}"
 
           scp $COMMON_OPTS -P $VPS_PORT docker-compose.deploy.yml $VPS_USERNAME@$VPS_HOST:/var/www/wikiaim/wikiaim-backend/
 
