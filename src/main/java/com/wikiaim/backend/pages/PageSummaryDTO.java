@@ -8,11 +8,10 @@ import java.util.UUID;
 
 @Serdeable
 @Introspected
-public record PageResponseDTO(
+public record PageSummaryDTO(
     UUID id,
     String title,
     String slug,
-    String currentContent,
     UUID authorId,
     String categorySlug,
     Instant updatedAt

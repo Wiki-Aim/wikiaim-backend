@@ -7,7 +7,15 @@ import jakarta.inject.Singleton;
 @Singleton
 public interface PageMapper {
 
-    @Mapping(to = "authorId", from = "#{page.author.id}", condition = "#{page.author != null}")
-    @Mapper
+    @Mapper({
+        @Mapping(to = "authorId", from = "#{page.author.id}", condition = "#{page.author != null}"),
+        @Mapping(to = "categorySlug", from = "#{page.category.slug}", condition = "#{page.category != null}")
+    })
     PageResponseDTO toDTO(Page page);
+
+    @Mapper({
+        @Mapping(to = "authorId", from = "#{page.author.id}", condition = "#{page.author != null}"),
+        @Mapping(to = "categorySlug", from = "#{page.category.slug}", condition = "#{page.category != null}")
+    })
+    PageSummaryDTO toSummaryDTO(Page page);
 }

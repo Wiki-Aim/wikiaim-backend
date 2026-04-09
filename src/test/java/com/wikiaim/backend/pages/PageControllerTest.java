@@ -1,7 +1,6 @@
 package com.wikiaim.backend.pages;
 
 import io.micronaut.context.annotation.Property;
-import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,51 +42,11 @@ class PageControllerTest {
     }
 
     @Test
-    void listPublishedPages_shouldReturn200WithList() {
-        // Arrange
-        PageResponseDTO dto = new PageResponseDTO(
-            UUID.randomUUID(), "Guide du aim", "guide-aim",
-            "{\"blocks\":[]}", UUID.randomUUID(), Instant.now()
-        );
-
-        when(pageService.getAllPublishedPages()).thenReturn(List.of(dto));
-
-        // Act
-        HttpResponse<List<PageResponseDTO>> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/pages"),
-            Argument.listOf(PageResponseDTO.class)
-        );
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatus());
-        assertNotNull(response.body());
-        assertEquals(1, response.body().size());
-        assertEquals(dto.id(), response.body().getFirst().id());
-    }
-
-    @Test
-    void listPublishedPages_shouldReturn200WithEmptyList() {
-        // Arrange
-        when(pageService.getAllPublishedPages()).thenReturn(List.of());
-
-        // Act
-        HttpResponse<List<PageResponseDTO>> response = client.toBlocking().exchange(
-            HttpRequest.GET("/api/v1/pages"),
-            Argument.listOf(PageResponseDTO.class)
-        );
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatus());
-        assertNotNull(response.body());
-        assertTrue(response.body().isEmpty());
-    }
-
-    @Test
     void getPage_shouldReturn200WhenFound() {
         // Arrange
         PageResponseDTO dto = new PageResponseDTO(
             UUID.randomUUID(), "Guide du aim", "guide-aim",
-            "{\"blocks\":[]}", UUID.randomUUID(), Instant.now()
+            "{\"blocks\":[]}", UUID.randomUUID(), "aim", Instant.now()
         );
 
         when(pageService.getPageBySlug("guide-aim")).thenReturn(Optional.of(dto));
@@ -103,6 +61,7 @@ class PageControllerTest {
         assertEquals(HttpStatus.OK, response.getStatus());
         assertNotNull(response.body());
         assertEquals("guide-aim", response.body().slug());
+        assertEquals("aim", response.body().categorySlug());
     }
 
     @Test

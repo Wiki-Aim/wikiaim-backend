@@ -1,5 +1,6 @@
 package com.wikiaim.backend.pages;
 
+import com.wikiaim.backend.categories.Category;
 import com.wikiaim.backend.users.User;
 import io.micronaut.context.annotation.Property;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -24,12 +25,18 @@ class PageMapperTest {
             .id(UUID.randomUUID())
             .build();
 
+        Category category = Category.builder()
+            .id(UUID.randomUUID())
+            .slug("aim")
+            .build();
+
         Page page = Page.builder()
             .id(UUID.randomUUID())
             .title("Titre de test")
             .slug("titre-de-test")
             .currentContent("{\"blocks\":[]}")
             .author(author)
+            .category(category)
             .build();
 
         // Act
@@ -42,10 +49,11 @@ class PageMapperTest {
         assertEquals("titre-de-test", dto.slug());
         assertEquals("{\"blocks\":[]}", dto.currentContent());
         assertEquals(author.getId(), dto.authorId());
+        assertEquals("aim", dto.categorySlug());
     }
 
     @Test
-    void shouldHandleNullAuthor() {
+    void shouldHandleNullAuthorAndCategory() {
         // Arrange
         Page page = Page.builder()
             .id(UUID.randomUUID())
@@ -56,5 +64,54 @@ class PageMapperTest {
 
         // Assert
         assertNull(dto.authorId());
+        assertNull(dto.categorySlug());
+    }
+
+    @Test
+    void shouldMapPageToSummaryDTO() {
+        // Arrange
+        User author = User.builder()
+            .id(UUID.randomUUID())
+            .build();
+
+        Category category = Category.builder()
+            .id(UUID.randomUUID())
+            .slug("aim")
+            .build();
+
+        Page page = Page.builder()
+            .id(UUID.randomUUID())
+            .title("Titre de test")
+            .slug("titre-de-test")
+            .currentContent("{\"blocks\":[]}")
+            .author(author)
+            .category(category)
+            .build();
+
+        // Act
+        PageSummaryDTO dto = mapper.toSummaryDTO(page);
+
+        // Assert
+        assertNotNull(dto);
+        assertEquals(page.getId(), dto.id());
+        assertEquals("Titre de test", dto.title());
+        assertEquals("titre-de-test", dto.slug());
+        assertEquals(author.getId(), dto.authorId());
+        assertEquals("aim", dto.categorySlug());
+    }
+
+    @Test
+    void shouldHandleNullAuthorAndCategoryInSummary() {
+        // Arrange
+        Page page = Page.builder()
+            .id(UUID.randomUUID())
+            .build();
+
+        // Act
+        PageSummaryDTO dto = mapper.toSummaryDTO(page);
+
+        // Assert
+        assertNull(dto.authorId());
+        assertNull(dto.categorySlug());
     }
 }
